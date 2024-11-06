@@ -59,7 +59,7 @@ void loop() {
   }
 
 }
-
+//si leen esto me deben una birra jaja salu2
 
 
 void ADC_Handler(void){
@@ -87,7 +87,7 @@ void ADC_Handler(void){
   PIO_Set(PIO_LED,LED_1); // Se enciende el LED de estado 1
   //actualiar ref
   //actualizar uk
-
+  
   //e = ref - y;
   //------------ Cálculo de la acción de control --------------------------------
   // Acción P: up(k) = Kp*e(k)
