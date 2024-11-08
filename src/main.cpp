@@ -7,12 +7,25 @@
 
 // Variables globalesm
 int adc_7;
-const int T_SAMPLE = 1;
+const int T_SAMPLE = 6;
 volatile bool run = 0, buffer_full = 0, data_sent = 0;
 volatile int counter_N = 0;
 volatile float ref = 0, y = 0;
 volatile float u = 0;
 float s_ref[N_SAVED], s_y[N_SAVED], s_u[N_SAVED];
+
+
+const float Kpi = 0.2724272430209788755;
+const float Kd = 0.0002863986337621703;
+const float a = -0.634784293524907;
+volatile float ek = 0;
+volatile float ekm1 = 0;
+volatile float upik = 0;
+volatile float upikm1 = 0;
+volatile float eyk = 0;
+volatile float ykm1 = 0;
+volatile float ud_k = 0;
+const float fm = 1/0.006;
 
 void setup() {
   // Llamada a funciones de configuración
@@ -86,33 +99,26 @@ void ADC_Handler(void){
       
   PIO_Set(PIO_LED,LED_1); // Se enciende el LED de estado 1
   //actualiar ref
-  //actualizar uk
-  
-  //e = ref - y;
+
+  //actualizar ek
+  ek = ref - y;
   //------------ Cálculo de la acción de control --------------------------------
-  // Acción P: up(k) = Kp*e(k)
-  //up = Kp*e;
-  
-  // Acción PI, aprox. Forward: upi(k) = upi(k-1) + Kpi*e(k) + a*Kpi*e(k-1)
-  //upi = upi_ + Kpi*e + a*Kpi*ek_;  
-
   // Acción PI para el PI-D
-  //upi = upi_ + Kpid*e + a*Kpid*e_;
-                
-  // Acción D (desde la salida) aprox. Backward: ud(k) = Kdd*[y(k)-y(k-1)]/T
-  //ey = y - y_;	    // Error de velocidad: y(k)-y(k-1).
-  //ud_ = Kdd*ey;		// Cálculo de la acción derivativa
-
+  upik = upikm1 + Kpi*ek + a*Kpi*ekm1;
+  // Acción D (desde la salida) aprox. Backward: ud(k) = Kd*[y(k)-y(k-1)]/T
+  eyk = y - ykm1; // Error de velocidad: y(k)-y(k-1).//
+  ud_k = Kd*eyk*fm; // Cálculo de la acción derivativa
   // Acción PI-D
-  //upid_k = upik - ud_k;
-  //upid_k = upi_k - ud_k;
+  u = upik - ud_k;
+
+  ekm1 = ek;
+  upikm1 = upik;
+  ykm1 = y;
+  
 
   //guardar variables en buffer
-
-
-  delayMicroseconds(50);//solo para debug, comentar o borrar despues de implementar el control
-  u = 0.25;             //solo para debug, comentar o borrar despues de implementar el control
-
+  // delayMicroseconds(50);//solo para debug, comentar o borrar despues de implementar el control
+  // u = 0.25;             //solo para debug, comentar o borrar despues de implementar el control
   if(!buffer_full){
     s_ref[index] = ref;
     s_y[index] = y;
